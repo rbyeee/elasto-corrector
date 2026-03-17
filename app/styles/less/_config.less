@@ -4,12 +4,12 @@
 @fontsize: 16px; // Body Font Size
 @textcolor: #333; // Text Color
 @lineheight: 1.65; // Document Line Height
-@userfont: roboto-oh5, sans-serif; // User Font Family
+@userfont: Involve, sans-serif; // User Font Family
 @systemfont: -apple-system, BlinkMacSystemFont, Arial, sans-serif; // System Font Family
 
 // IMPORT SECTION
 
-@import (less) 'node_modules/bootstrap/dist/css/bootstrap-reboot.css'; // Bootstrap Reboot collection
+@import (less) "node_modules/bootstrap/dist/css/bootstrap-reboot.css"; // Bootstrap Reboot collection
 // @import (less) 'node_modules/bootstrap/dist/css/bootstrap-grid.css'; // Optional Bootstrap Grid
 
 // FONTS LOAD SECTION
@@ -19,15 +19,12 @@
 		font-family: @fname;
 		font-style: @fstyle;
 		font-weight: @fweight;
-		src: url(@furl) format('woff2');
+		src: url(@furl) format("woff2");
 	}
 }
 
-.font('roboto-oh5', normal, 400, '../fonts/roboto-regular-webfont.woff2');
-.font('roboto-oh5', italic, 400, '../fonts/roboto-italic-webfont.woff2');
-.font('roboto-oh5', normal, 700, '../fonts/roboto-bold-webfont.woff2');
-.font('roboto-oh5', italic, 700, '../fonts/roboto-bolditalic-webfont.woff2');
-
+.font("roboto-oh5", normal, 400, "../fonts/Involve-Regular.woff2");
+.font("roboto-oh5", italic, 500, "../fonts/Involve-Medium.woff2");
 // GENERAL CSS SETTINGS
 
 ::placeholder {
@@ -39,10 +36,15 @@
 	color: #fff;
 }
 
-input, textarea {
+input,
+textarea {
 	outline: none;
-	&:focus:required:invalid { border-color: red }
-	&:required:valid { border-color: green }
+	&:focus:required:invalid {
+		border-color: red;
+	}
+	&:required:valid {
+		border-color: green;
+	}
 }
 
 body {
