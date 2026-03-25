@@ -7,9 +7,7 @@ $(document).ready(function () {
 		byRow: true,
 	})
 
-	$(".perfect__descript-height").matchHeight({
-		byRow: true,
-	})
+	$(".perfect__descript-height").matchHeight({})
 
 	$(".will-do__description-height").matchHeight({
 		byRow: true,
@@ -132,6 +130,24 @@ $(document).ready(function () {
 					updateGroupCounter(swiper)
 				},
 			},
+			breakpoints: {
+				320: {
+					slidesPerView: 1,
+					slidesPerGroup: 1,
+				},
+				640: {
+					slidesPerView: 1,
+					slidesPerGroup: 1,
+				},
+				768: {
+					slidesPerView: 2,
+					slidesPerGroup: 2,
+				},
+				1024: {
+					slidesPerView: 3,
+					slidesPerGroup: 3,
+				},
+			},
 		})
 	}
 
@@ -174,6 +190,20 @@ $(document).ready(function () {
 		navigation: {
 			nextEl: ".sertificat-sw-arrow-r",
 			prevEl: ".sertificat-sw-arrow-l",
+		},
+		breakpoints: {
+			320: {
+				slidesPerView: 2,
+			},
+			640: {
+				slidesPerView: 3,
+			},
+			768: {
+				slidesPerView: 4,
+			},
+			1024: {
+				slidesPerView: 6,
+			},
 		},
 	})
 	var $list = $(".map-widget__list")
