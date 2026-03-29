@@ -7,7 +7,12 @@ $(document).ready(function () {
 		byRow: true,
 	})
 
-	$(".perfect__descript-height").matchHeight({})
+	$(".perfect__descript-height").matchHeight({
+		byRow: true,
+	})
+	$(".perfect__title").matchHeight({
+		byRow: true,
+	})
 
 	$(".will-do__description-height").matchHeight({
 		byRow: true,
@@ -183,29 +188,122 @@ $(document).ready(function () {
 		switchTab(index)
 	})
 
-	const sertificatSwiper = new Swiper(".sertificat-swiper", {
-		slidesPerView: 6,
-		spaceBetween: 20,
-		slidesPerGroup: 1,
-		navigation: {
-			nextEl: ".sertificat-sw-arrow-r",
-			prevEl: ".sertificat-sw-arrow-l",
-		},
-		breakpoints: {
-			320: {
-				slidesPerView: 2,
-			},
-			640: {
-				slidesPerView: 3,
-			},
-			768: {
-				slidesPerView: 4,
-			},
-			1024: {
-				slidesPerView: 6,
-			},
-		},
+	$(function () {
+		// Кэшируем селекторы
+		const $tabs = $(".documents-tabs__link")
+		const $tabsContent = $(".documents-tab")
+		const $arrowLeft = $(".sertificat-sw-arrow-l")
+		const $arrowRight = $(".sertificat-sw-arrow-r")
+		let currentSwiper = null
+
+		// Уничтожение текущего свайпера
+		function destroyCurrentSwiper() {
+			if (currentSwiper) {
+				if (typeof currentSwiper.destroy === "function") {
+					currentSwiper.destroy(true, true)
+				}
+				currentSwiper = null
+			}
+		}
+
+		// Инициализация свайпера
+		function initSwiper(container) {
+			return new Swiper(container, {
+				slidesPerView: 5,
+				spaceBetween: 20,
+				slidesPerGroup: 1,
+				navigation: {
+					nextEl: $arrowRight[0],
+					prevEl: $arrowLeft[0],
+				},
+				on: {
+					init: function (swiper) {
+						updateGroupCounter(swiper)
+					},
+					slideChange: function (swiper) {
+						updateGroupCounter(swiper)
+					},
+					resize: function (swiper) {
+						updateGroupCounter(swiper)
+					},
+				},
+				breakpoints: {
+					320: {
+						slidesPerView: 2,
+						slidesPerGroup: 1,
+					},
+					640: {
+						slidesPerView: 3,
+						slidesPerGroup: 1,
+					},
+					768: {
+						slidesPerView: 4,
+						slidesPerGroup: 1,
+					},
+					1024: {
+						slidesPerView: 5,
+						slidesPerGroup: 1,
+					},
+				},
+			})
+		}
+
+		// Переключение таба
+		function switchTab(index) {
+			// Переключаем активные классы у кнопок
+			$tabs.removeClass("active")
+			$tabs.eq(index).addClass("active")
+
+			// Переключаем активные классы у контента
+			$tabsContent.removeClass("active")
+			$tabsContent.eq(index).addClass("active")
+
+			// Уничтожаем старый свайпер и инициализируем новый
+			destroyCurrentSwiper()
+			const $activeSwiperContainer = $tabsContent
+				.eq(index)
+				.find(".sertificat-swiper")
+
+			if ($activeSwiperContainer.length) {
+				currentSwiper = initSwiper($activeSwiperContainer[0])
+			}
+		}
+
+		// === Инициализация при загрузке ===
+
+		// 1. Находим активный таб по классу (если задан в HTML)
+		let activeIndex = 0
+		$tabs.each(function (i) {
+			if ($(this).hasClass("active")) {
+				activeIndex = i
+				return false // break
+			}
+		})
+
+		// 2. Синхронизируем классы (на всякий случай)
+		$tabs.removeClass("active").eq(activeIndex).addClass("active")
+		$tabsContent.removeClass("active").eq(activeIndex).addClass("active")
+
+		// 3. Инициализируем свайпер для активного таба
+		const $initialSwiper = $tabsContent
+			.eq(activeIndex)
+			.find(".sertificat-swiper")
+		if ($initialSwiper.length) {
+			currentSwiper = initSwiper($initialSwiper[0])
+		}
+
+		// === Обработчик клика по табам ===
+		$tabs.on("click", function (e) {
+			e.preventDefault()
+			const index = $(this).index()
+
+			// Если клик по уже активному табу — ничего не делаем
+			if ($(this).hasClass("active")) return
+
+			switchTab(index)
+		})
 	})
+
 	var $list = $(".map-widget__list")
 	var $emptyMsg = $list.find(".map-widget__empty")
 
@@ -321,6 +419,10 @@ $(document).ready(function () {
 		$(".map-widget__item").on("click", handleItemClick)
 	})
 
+	$(".popup-trigger").magnificPopup({
+		type: "inline",
+	})
+
 	// index-swiper
 
 	$(function () {
@@ -346,24 +448,105 @@ $(document).ready(function () {
 				},
 			},
 		})
+
+		$(".header-mobile-close").on("click", function (e) {
+			e.preventDefault()
+			$(".header-mobile-container").removeClass("active")
+		})
+
+		$(".header-burger").on("click", function (e) {
+			e.preventDefault()
+			$(".header-mobile-container").addClass("active")
+		})
+
 		function updatePagination(swiperInstance) {
+			// realIndex + 1 для отображения (1 из 5)
 			const current = swiperInstance.realIndex + 1
-			const total = swiperInstance.slides.length
+
+			// ИСПРАВЛЕНИЕ: Считаем только слайды без класса дубликата
+			const total = $(swiperInstance.slides).not(
+				".swiper-slide-duplicate",
+			).length
+
 			$(".simple-slider__current").text(current)
 			$(".simple-slider__total").text(total)
 		}
 
 		function updatePrevLabel(swiperInstance) {
 			let prevIndex = swiperInstance.previousIndex
-			if (prevIndex === undefined || prevIndex === null) {
-				prevIndex = swiperInstance.slides.length - 1
+
+			// Обработка случая при инициализации
+			if (prevIndex === undefined || prevIndex === null || prevIndex < 0) {
+				// Если предыдущего нет (первый слайд), берем последний реальный
+				prevIndex =
+					$(swiperInstance.slides).not(".swiper-slide-duplicate").length - 1
 			}
 
+			// В режиме loop slides[prevIndex] может ссылаться на клон, но контент там одинаковый,
+			// поэтому логика получения текста останется рабочей.
 			const prevSlide = swiperInstance.slides[prevIndex]
+
 			if (prevSlide) {
 				const prevLabel = $(prevSlide).find(".index-swiper__label").text()
 				$(".index-container-sl-label").text(prevLabel)
 			}
 		}
+	})
+
+	$(function () {
+		// Обработчик для выбора файла
+		$('.input-file[type="file"]').on("change", function () {
+			const fileInput = this
+
+			// Проверяем, выбран ли файл
+			if (fileInput.files && fileInput.files[0]) {
+				const fileName = fileInput.files[0].name
+
+				// Находим соседний элемент с текстом и обновляем его
+				$(this).closest("label").find(".input-file-line").text(fileName)
+
+				// (Опционально) Добавляем класс для изменения стиля, когда файл выбран
+				$(this).closest("label").addClass("has-file")
+			} else {
+				// Если файл не выбран (сброс), возвращаем исходный текст
+				$(this)
+					.closest("label")
+					.find(".input-file-line")
+					.text("Прикрепить файл")
+				$(this).closest("label").removeClass("has-file")
+			}
+		})
+	})
+
+	$(function () {
+		const ROLE_KEY = "user_role_selected" // Ключ для localStorage
+
+		if (localStorage.getItem(ROLE_KEY)) {
+			$(".preloader-content").addClass("hidden")
+			return
+		}
+
+		// Обработчик клика по кнопкам
+		$(".preloader-content-wrapper .btn").on("click", function (e) {
+			e.preventDefault()
+
+			const $btn = $(this)
+			let role = ""
+
+			// Определяем роль по тексту или классу кнопки
+			if ($btn.text().includes("пациент")) {
+				role = "patient"
+			} else if ($btn.text().includes("специалист")) {
+				role = "specialist"
+			}
+
+			if (role) {
+				// Сохраняем выбор в localStorage
+				localStorage.setItem(ROLE_KEY, role)
+
+				// Переходим на нужную страницу
+				window.location.href = $btn.attr("href")
+			}
+		})
 	})
 })
